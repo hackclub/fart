@@ -10,7 +10,7 @@ FART started as the file viewer reviewers use in [Fabricate](https://fabricate.h
 
 - Files are parsed in the browser, in Web Workers. Bytes come straight from `raw.githubusercontent.com` (and `media.githubusercontent.com` for Git LFS) and are cached in IndexedDB. Files are prepared in the background so they open instantly.
 - The Node server (`server/`) serves the built app and a small JSON API that reads file lists, commits and diffs from the GitHub API, with an in-memory cache and per-IP rate limits. Only public repositories are opened.
-- STEP/IGES/BREP files too large for the in-browser OpenCascade reader are converted to GLB on the server by `vendor/step2glb`, one at a time, under a 3 GB memory cap.
+- STEP/IGES/BREP files too large for the in-browser OpenCascade reader are converted to GLB on the server by `vendor/step2glb`, one at a time, under a memory cap (`CONVERT_MEMORY_MB`, 3 GB by default).
 
 ## Themes
 

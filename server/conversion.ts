@@ -13,7 +13,7 @@ import { encodePath, log } from './github.ts'
 const EXTENSIONS = new Set(['step', 'stp', 'iges', 'igs', 'brep', 'brp'])
 const MB = 1024 * 1024
 const MAX_BYTES = 300 * MB
-const MEMORY_LIMIT = 3 * 1024 * MB
+const MEMORY_LIMIT = Number(process.env.CONVERT_MEMORY_MB ?? 3072) * MB
 const OUTPUT_LIMIT = 1024 * MB
 const TIMEOUT_MS = 15 * 60 * 1000
 const DONE_TTL = 30 * 24 * 60 * 60 * 1000
