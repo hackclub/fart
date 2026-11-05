@@ -19,6 +19,9 @@ COPY . .
 RUN npm run build
 
 FROM base
+# The server only needs node; the bundled package managers are dead weight with their own CVEs.
+RUN rm -rf /usr/local/lib/node_modules /opt/yarn-* \
+      /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 ENV NODE_ENV=production PORT=3000
 WORKDIR /app
 COPY --from=build /usr/local/bin/step2glb /usr/local/bin/step2glb
