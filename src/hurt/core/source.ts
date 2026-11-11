@@ -3,7 +3,7 @@ import type { FileSource, ReadOptions, SnapshotData } from '../types'
 import { cacheGet, cacheHas, cachePut } from './cache'
 import { makeFile } from './classify'
 import { formatBytes } from './format'
-import { openArchive, type Archive } from './archive'
+import { isHiddenPath, openArchive, type Archive } from './archive'
 
 const RAW = 'https://raw.githubusercontent.com'
 const MEDIA = 'https://media.githubusercontent.com/media'
@@ -60,7 +60,7 @@ function encodePath(path: string) {
 }
 
 export function repoSource(snapshot: SnapshotData): FileSource {
-  const files = snapshot.files.map((f) => makeFile(f.path, f.size, f.submodule))
+  const files = snapshot.files.filter((f) => !isHiddenPath(f.path)).map((f) => makeFile(f.path, f.size, f.submodule))
   const byPath = new Map(files.map((f) => [f.path, f]))
   const blobSizes = new Map(snapshot.files.map((f) => [f.path, f.size]))
   const pointers = new Map<string, Pointer>()

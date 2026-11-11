@@ -34,6 +34,10 @@ const CP437 =
 const utf8 = new TextDecoder()
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true })
 
+export function isHiddenPath(path: string) {
+  return HIDDEN.test(path)
+}
+
 export function isZip(bytes: Uint8Array) {
   return isSigned(bytes, 0) || (isSpanned(bytes) && isSigned(bytes, 4))
 }
