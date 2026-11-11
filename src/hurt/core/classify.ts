@@ -41,7 +41,7 @@ register(
    sql graphql gql proto diff patch v sv svh vh vhd vhdl tcl xdc ucf pcf qsf sdc cmake mk makefile dockerfile
    keymap overlay dts dtsi defconfig kconfig board rst adoc tex bib
    kicad_sym kicad_mod kicad_prl kicad_dru kicad_sch-bak kicad_pcb-bak dcm lib pro net cir sp spice asc
-   ipc d356 rpt pos gbrjob drc erc bom scad jscad x_t xt xmt_txt gcode nc ngc tap gc kicad_wks scr
+   ipc d356 rpt pos gbrjob drc erc bom scad jscad xt gcode nc ngc tap gc kicad_wks scr
    lck lock bak ioc cad dsn ses d su mtl map lst x icf cyclo defaults shield sysbuild example sample in service rules
    mod sum code-workspace vil hjson ipynb excalidraw drawio iml uvprojx uvoptx ewp eww xpr launch inf url ahk nix
    hbs pio lpf prefs version check_cache round-tracks-config sat 356a eep bip ptf epl dsl cpa ftf foota edf pdif
