@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
-import { createHash } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import { extname, join, normalize, resolve, sep } from 'node:path'
 import { RepoFiles, log, validRepo } from './github.ts'
@@ -9,6 +9,13 @@ import { RateLimit } from './rateLimit.ts'
 const PORT = Number(process.env.PORT ?? 3000)
 const DIST = resolve(import.meta.dirname, '../dist')
 const MINUTE = 60 * 1000
+const FULL_SHA = /^[0-9a-f]{40}$/
+// Bearer tokens for apps (Fabricate, Half Life) that convert on behalf of their own reviewers.
+const CONVERT_TOKENS = (process.env.CONVERT_TOKENS ?? '')
+  .split(',')
+  .map((token) => token.trim())
+  .filter(Boolean)
+  .map(digest)
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -69,7 +76,11 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     return json(res, 405, { error: 'Method not allowed.' })
 
   const ip = clientIp(req)
-  if (!limits.api.allow(ip)) return json(res, 429, { error: 'Too many requests, slow down.' })
+  const converting = action === 'convert' || action === 'converted'
+  const trusted = converting && trustedCaller(req)
+  if (converting && !trusted && req.headers.authorization)
+    return json(res, 401, { error: 'FART does not recognise the token this app sent.' })
+  if (!trusted && !limits.api.allow(ip)) return json(res, 429, { error: 'Too many requests, slow down.' })
 
   const repo = `${safeDecode(owner)}/${safeDecode(name)}`
   if (!validRepo(repo)) return json(res, 404, { error: "That isn't a GitHub repository." })
@@ -93,28 +104,42 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     }
     case 'convert':
     case 'converted':
-      return convertAction(res, files, url, action, ip)
+      return convertAction(res, files, url, action, ip, trusted)
   }
 }
 
-async function convertAction(res: ServerResponse, files: RepoFiles, url: URL, action: string, ip: string) {
+// Trusted callers have already checked the file and commit against their own snapshot, which
+// can be a minute apart from this one, so they may name any full commit SHA.
+async function convertAction(
+  res: ServerResponse,
+  files: RepoFiles,
+  url: URL,
+  action: string,
+  ip: string,
+  trusted: boolean,
+) {
   const path = url.searchParams.get('path') ?? ''
   const sha = url.searchParams.get('sha') ?? ''
   if (action === 'convert' && !conversion.converter())
     return json(res, 503, { error: "Converting models on the server isn't set up here." })
-  const snapshot = await files.snapshot()
-  if (!conversion.convertible(path) || !snapshot?.files.some((f) => f.path === path))
-    return json(res, 422, { error: "That file can't be converted." })
-  if (snapshot.sha !== sha)
-    return json(res, 409, {
-      error: 'The repository changed since this page loaded. Reload it to convert the latest version.',
-    })
+  if (!conversion.convertible(path)) return json(res, 422, { error: "That file can't be converted." })
+  if (trusted) {
+    if (!FULL_SHA.test(sha) || path.split('/').some((part) => part === '' || part === '.' || part === '..'))
+      return json(res, 422, { error: "That file can't be converted." })
+  } else {
+    const snapshot = await files.snapshot()
+    if (!snapshot?.files.some((f) => f.path === path)) return json(res, 422, { error: "That file can't be converted." })
+    if (snapshot.sha !== sha)
+      return json(res, 409, {
+        error: 'The repository changed since this page loaded. Reload it to convert the latest version.',
+      })
+  }
 
   if (action === 'convert') {
     const current = conversion.status(files.repo, sha, path)
-    if (!current && !limits.convert.allow(ip))
+    if (!current && !trusted && !limits.convert.allow(ip))
       return json(res, 429, { error: 'You have converted a lot of models recently. Try again later.' })
-    const result = conversion.start(files.repo, sha, path)
+    const result = conversion.start(files.repo, sha, path, trusted)
     return json(res, 'error' in result ? 503 : 200, result)
   }
 
@@ -170,6 +195,17 @@ function contentSecurityPolicy(html: string) {
     "media-src 'self' data: blob: https:",
     "connect-src 'self' blob: https://raw.githubusercontent.com https://media.githubusercontent.com",
   ].join('; ')
+}
+
+function trustedCaller(req: IncomingMessage) {
+  const header = req.headers.authorization
+  if (!header?.startsWith('Bearer ') || CONVERT_TOKENS.length === 0) return false
+  const given = digest(header.slice('Bearer '.length).trim())
+  return CONVERT_TOKENS.some((token) => timingSafeEqual(given, token))
+}
+
+function digest(value: string) {
+  return createHash('sha256').update(value).digest()
 }
 
 function clientIp(req: IncomingMessage) {

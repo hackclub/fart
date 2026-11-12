@@ -35,6 +35,8 @@ Server-side conversion needs `step2glb`: build it with `sh vendor/step2glb/build
 
 The `Dockerfile` builds the app and the converter and runs `node server/index.ts` on port 3000 as a non-root user. It is deployed on Hack Club's Orchard. Set `GITHUB_TOKEN` as a secret: a fine-grained token with public-repository read access only. Give the pod about 4 GiB of memory for the converter. See `.env.example` for the other settings.
 
+Fabricate and Half Life don't run the converter themselves; they send their reviewers' models here. Each has its own secret in `CONVERT_TOKENS` and calls `POST /api/repos/:owner/:name/convert?sha=&path=` until it answers `{"state":"done"}` (or `failed`, with an `error`), then downloads the GLB from `GET …/converted` with the same query. Keep these two endpoints, their query and the `state`/`message`/`error` JSON working as they are, or update both apps in the same change.
+
 The page sends a strict Content-Security-Policy. Files under `/assets` are served without one. That is deliberate: the OpenCascade worker needs `eval` (Emscripten embind). If a proxy adds a CSP to static files, STEP viewing breaks.
 
 ## License

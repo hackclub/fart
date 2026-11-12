@@ -43,7 +43,7 @@ export interface Status {
 class Failure extends Error {}
 
 const states = new Map<string, Status>()
-const queue: { key: string; repo: string; sha: string; path: string }[] = []
+const queue: { key: string; repo: string; sha: string; path: string; priority: boolean }[] = []
 let running = false
 
 export function converter() {
@@ -75,14 +75,16 @@ export function status(repo: string, sha: string, path: string): Status | null {
   return result
 }
 
-export function start(repo: string, sha: string, path: string): Status | { error: string } {
+// Priority jobs (from CONVERT_TOKENS callers) skip the queue cap and wait only behind other priority jobs.
+export function start(repo: string, sha: string, path: string, priority = false): Status | { error: string } {
   const current = status(repo, sha, path)
   if (current) return publicStatus(current)
-  if (queue.length >= MAX_QUEUE)
+  if (!priority && queue.length >= MAX_QUEUE)
     return { error: 'The server is busy converting other models. Try again in a few minutes.' }
   const key = keyFor(repo, sha, path)
   states.set(key, { state: 'queued', message: 'Waiting for the server' })
-  queue.push({ key, repo, sha, path })
+  const at = priority ? queue.findIndex((job) => !job.priority) : -1
+  queue.splice(at < 0 ? queue.length : at, 0, { key, repo, sha, path, priority })
   void drain()
   return publicStatus(states.get(key)!)
 }
