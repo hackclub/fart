@@ -140,7 +140,7 @@ async function convertAction(
     if (!current && !trusted && !limits.convert.allow(ip))
       return json(res, 429, { error: 'You have converted a lot of models recently. Try again later.' })
     const result = conversion.start(files.repo, sha, path, trusted)
-    return json(res, 'error' in result ? 503 : 200, result)
+    return json(res, 'state' in result ? 200 : 503, result)
   }
 
   const done = conversion.converted(files.repo, sha, path)
