@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "node server/index.ts",
-    "check": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "check": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p src/hurt/kicanvas/tsconfig.json",
     "format": "prettier --write 'src/**/*.{ts,tsx}' 'server/**/*.ts' vite.config.ts",
     "format:check": "prettier --check 'src/**/*.{ts,tsx}' 'server/**/*.ts' vite.config.ts",
     "postinstall": "node patches/apply.js",
@@ -40,6 +40,7 @@
     "@types/react-dom": "19.2.3",
     "@types/three": "0.186.0",
     "@vitejs/plugin-react-swc": "4.2.3",
+    "esbuild": "0.28.2",
     "prettier": "3.8.1",
     "typescript": "5.9.3",
     "vite": "7.3.7"

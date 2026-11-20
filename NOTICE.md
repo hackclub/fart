@@ -2,8 +2,9 @@
 
 FART's own code is MIT licensed (see `LICENSE`). It also ships or depends on:
 
-- **KiCanvas** (MIT), vendored in `src/hurt/vendor/kicanvas.js`, with the fonts and
-  icons it bundles. Its full notice is `src/hurt/vendor/kicanvas.LICENSE.md`.
+- **KiCanvas** (MIT), whose source is in `src/hurt/kicanvas/` with FART's changes, along
+  with the fonts and icons it bundles. Its full notice is `src/hurt/kicanvas/LICENSE.md`.
+- **earcut** (ISC, Mapbox), used by KiCanvas, in `src/hurt/kicanvas/third_party/earcut/`.
 - **Material Symbols** (Apache-2.0), cut down to the icons KiCanvas draws, in
   `src/hurt/vendor/material-symbols-kicanvas.woff2`.
 - **Parasolid schema table** in `src/hurt/viewers/parasolid/schema.ts`: the node fields of

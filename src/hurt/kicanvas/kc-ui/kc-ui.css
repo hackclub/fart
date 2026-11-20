@@ -1,0 +1,326 @@
+/*
+    Variables
+*/
+:host {
+    font-size: var(--font-size, 16px);
+
+    --transition-time-very-short: 100ms;
+    --transition-time-short: 200ms;
+    --transition-time-medium: 500ms;
+
+    --bg: #131218;
+    --fg: #f8f8f0;
+
+    --tooltip-bg: #8864cb;
+    --tooltip-fg: #f8f8f0;
+    --tooltip-border: 1px solid #131218;
+
+    --scrollbar-bg: #131218;
+    --scrollbar-fg: #ae81ff66;
+    --scrollbar-active-fg: #ae81ff;
+    --scrollbar-hover-bg: #ae81ffbb;
+
+    --activity-bar-bg: #282634;
+    --activity-bar-fg: #f8f8f0;
+    --activity-bar-active-bg: #131218;
+    --activity-bar-active-fg: #f8f8f0;
+
+    --resizer-bg: #ae81ff;
+    --resizer-active-bg: #ae81ffbb;
+
+    --panel-bg: #131218;
+    --panel-fg: #f8f8f0;
+    --panel-border: 2px solid #282634;
+    --panel-title-bg: #8077a8;
+    --panel-title-fg: #f8f8f0;
+    --panel-title-border: 1px solid #634e89;
+    --panel-title-button-bg: transparent;
+    --panel-title-button-fg: #dcc8ff;
+    --panel-title-button-hover-bg: #ae81ff;
+    --panel-title-button-hover-fg: inherit;
+    --panel-title-button-disabled-bg: inherit;
+    --panel-title-button-disabled-fg: #888;
+    --panel-subtitle-bg: #634e89;
+    --panel-subtitle-fg: var(--panel-fg);
+
+    --dropdown-bg: #464258;
+    --dropdown-fg: #f8f8f0;
+
+    --button-bg: #81eeff;
+    --button-fg: #131218;
+    --button-hover-bg: #a3f3ff;
+    --button-hover-fg: #131218;
+    --button-focus-outline: 1px solid #ae81ff;
+    --button-selected-bg: #ae81ff;
+    --button-selected-fg: #131218;
+    --button-disabled-bg: #131218;
+    --button-disabled-fg: #888;
+    --button-success-bg: #64cb96;
+    --button-success-fg: #131218;
+    --button-success-hover-bg: #81ffbe;
+    --button-success-hover-fg: #131218;
+    --button-danger-bg: #cb6488;
+    --button-danger-fg: #131218;
+    --button-danger-hover-bg: #ff81ad;
+    --button-danger-hover-fg: #131218;
+    --button-outline-bg: #282634;
+    --button-outline-fg: #f8f8f0;
+    --button-outline-hover-bg: #282634;
+    --button-outline-hover-fg: #81eeff;
+    --button-outline-disabled-bg: #131218;
+    --button-outline-disabled-fg: #888;
+    --button-toolbar-bg: #282634;
+    --button-toolbar-fg: #f8f8f0;
+    --button-toolbar-hover-bg: #282634;
+    --button-toolbar-hover-fg: #81eeff;
+    --button-toolbar-disabled-bg: #131218;
+    --button-toolbar-disabled-fg: #888;
+    --button-menu-bg: transparent;
+    --button-menu-fg: #f8f8f0;
+    --button-menu-hover-bg: transparent;
+    --button-menu-hover-fg: #81eeff;
+    --button-menu-disabled-bg: transparent;
+    --button-menu-disabled-fg: #888;
+
+    --input-bg: #131218;
+    --input-fg: #f8f8f0;
+    --input-border: 1px solid #8077a8;
+    --input-accent: #ae81ff;
+    --input-hover-shadow: 1px 1px 10px 5px rgba(0, 0, 0, 0.2);
+    --input-focus-outline: 1px solid #ae81ff;
+    --input-placeholder: #8077a8;
+    --input-disabled-bg: #131218;
+    --input-disabled-fg: #888;
+
+    --input-range-bg: #8077a8;
+    --input-range-fg: #f8f8f0;
+    --input-range-hover-bg: #ae81ff;
+    --input-range-disabled-bg: #131218;
+    --input-range-hover-shadow: 1px 1px 10px 5px rgba(0, 0, 0, 0.2);
+    --input-range-handle-shadow: 1px 1px 5px 5px rgba(180, 180, 180, 0.2);
+
+    --list-item-bg: var(--panel-bg);
+    --list-item-fg: var(--panel-fg);
+    --list-item-active-bg: #634e89;
+    --list-item-active-fg: var(--list-item-fg);
+    --list-item-hover-bg: #64cb96;
+    --list-item-hover-fg: var(--list-item-bg);
+    --list-item-disabled-bg: var(--list-item-bg);
+    --list-item-disabled-fg: #888;
+
+    --grid-outline: #433e56;
+}
+
+/*
+    Fabricate theme, drawn from the host page's colour tokens
+*/
+:host {
+    --bg: var(--color-ink);
+    --fg: var(--color-bone);
+    --tooltip-bg: var(--color-deep);
+    --tooltip-fg: var(--color-bone);
+    --tooltip-border: 1px solid var(--color-mid);
+    --scrollbar-bg: var(--color-ground);
+    --scrollbar-fg: var(--color-mid);
+    --scrollbar-hover-fg: var(--color-grey-3);
+    --scrollbar-active-fg: var(--color-grey-3);
+    --activity-bar-bg: var(--color-ground);
+    --activity-bar-fg: var(--color-grey-2);
+    --activity-bar-active-bg: var(--color-deep);
+    --activity-bar-active-fg: var(--color-paper);
+    --resizer-bg: var(--color-mid);
+    --resizer-active-bg: var(--color-grey-3);
+    --panel-bg: var(--color-ground);
+    --panel-fg: var(--color-bone);
+    --panel-border: 1px solid var(--color-mid);
+    --panel-title-bg: var(--color-deep);
+    --panel-title-fg: var(--color-paper);
+    --panel-title-border: 1px solid var(--color-mid);
+    --panel-title-button-fg: var(--color-grey-2);
+    --panel-title-button-hover-bg: var(--color-mid);
+    --panel-title-button-disabled-fg: var(--color-grey-3);
+    --panel-subtitle-bg: var(--color-deep);
+    --panel-subtitle-fg: var(--color-grey-1);
+    --dropdown-bg: var(--color-deep);
+    --dropdown-fg: var(--color-bone);
+    --dropdown-hover-bg: var(--color-mid);
+    --dropdown-hover-fg: var(--color-paper);
+    --dropdown-active-bg: var(--color-ink);
+    --dropdown-active-fg: var(--color-paper);
+    --button-bg: var(--color-bone);
+    --button-fg: var(--color-onwhite);
+    --button-hover-bg: var(--color-paper);
+    --button-hover-fg: var(--color-onwhite);
+    --button-focus-outline: 1px solid var(--color-bone);
+    --button-selected-bg: var(--color-bone);
+    --button-selected-fg: var(--color-onwhite);
+    --button-disabled-bg: var(--color-ground);
+    --button-disabled-fg: var(--color-grey-3);
+    --button-success-bg: var(--color-ok);
+    --button-success-fg: var(--color-ink);
+    --button-success-hover-bg: var(--color-ok);
+    --button-success-hover-fg: var(--color-ink);
+    --button-danger-bg: var(--color-red-soft);
+    --button-danger-fg: var(--color-ink);
+    --button-danger-hover-bg: var(--color-red-soft);
+    --button-danger-hover-fg: var(--color-ink);
+    --button-outline-bg: var(--color-ground);
+    --button-outline-fg: var(--color-bone);
+    --button-outline-hover-bg: var(--color-deep);
+    --button-outline-hover-fg: var(--color-paper);
+    --button-outline-disabled-bg: var(--color-ground);
+    --button-outline-disabled-fg: var(--color-grey-3);
+    --button-toolbar-bg: var(--color-ground);
+    --button-toolbar-fg: var(--color-grey-1);
+    --button-toolbar-hover-bg: var(--color-deep);
+    --button-toolbar-hover-fg: var(--color-paper);
+    --button-toolbar-disabled-bg: var(--color-ground);
+    --button-toolbar-disabled-fg: var(--color-grey-3);
+    --button-toolbar-alt-bg: var(--color-deep);
+    --button-toolbar-alt-hover-bg: var(--color-mid);
+    --button-toolbar-alt-hover-fg: var(--color-paper);
+    --button-toolbar-alt-disabled-bg: var(--color-ground);
+    --button-menu-fg: var(--color-bone);
+    --button-menu-hover-fg: var(--color-paper);
+    --button-menu-disabled-fg: var(--color-grey-3);
+    --input-bg: var(--color-ink);
+    --input-fg: var(--color-bone);
+    --input-border: 1px solid var(--color-mid);
+    --input-accent: var(--color-bone);
+    --input-hover-shadow: none;
+    --input-focus-outline: 1px solid var(--color-bone);
+    --input-placeholder: var(--color-grey-3);
+    --input-disabled-bg: var(--color-ground);
+    --input-disabled-fg: var(--color-grey-3);
+    --input-range-bg: var(--color-mid);
+    --input-range-fg: var(--color-bone);
+    --input-range-hover-bg: var(--color-grey-3);
+    --input-range-disabled-bg: var(--color-ground);
+    --input-range-hover-shadow: none;
+    --input-range-handle-shadow: none;
+    --list-item-hover-bg: var(--color-deep);
+    --list-item-hover-fg: var(--color-paper);
+    --list-item-active-bg: var(--color-mid);
+    --list-item-active-fg: var(--color-paper);
+    --list-item-disabled-fg: var(--color-grey-3);
+    --focus-overlay-bg: var(--color-ground);
+    --focus-overlay-opacity: 0.85;
+    --focus-overlay-fg: var(--color-bone);
+    --grid-outline: var(--color-mid);
+}
+
+*,
+::before,
+::after {
+    border-radius: 0 !important;
+}
+
+/*
+    Scrollbar
+*/
+
+::-webkit-scrollbar {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    margin-left: -6px;
+    background: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    position: absolute;
+    background: var(--scrollbar-fg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover-fg);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-active-fg);
+}
+
+/*
+    Layout
+*/
+
+kc-ui-app {
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+/*
+    Input elements
+*/
+
+label {
+    display: block;
+    width: 100%;
+    margin-top: 0.75em;
+}
+
+input,
+select,
+textarea {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.5em;
+    font-family: inherit;
+    border-radius: 0.25em;
+    text-align: center;
+    padding: 0.25em;
+    background: var(--input-bg);
+    color: var(--input-fg);
+    transition:
+        color var(--transition-time-medium) ease,
+        box-shadow var(--transition-time-medium) ease,
+        outline var(--transition-time-medium) ease,
+        background var(--transition-time-medium) ease,
+        border var(--transition-time-medium) ease;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    z-index: 10;
+    box-shadow: var(--input-hover-shadow);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    z-index: 10;
+    box-shadow: none;
+    outline: var(--input-focus-outline);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background: var(--input-disabled-bg);
+    color: var(--input-disabled-fg);
+}
+
+input:disabled:hover,
+select:disabled:hover,
+textarea:disabled:hover {
+    z-index: 10;
+    cursor: unset;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid transparent;
+    border-radius: 0.25em;
+}
+
+textarea {
+    text-align: left;
+    padding: 0.5em;
+}

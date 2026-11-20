@@ -15,7 +15,7 @@ const SILKSCREEN_LAYERS = ['F.SilkS', 'B.SilkS', 'F.Fab', 'B.Fab', 'Dwgs.User']
 let kicanvas: Promise<unknown> | null = null
 
 function loadKiCanvas() {
-  kicanvas ??= import('../vendor/kicanvas.js')
+  kicanvas ??= import('virtual:kicanvas')
   return kicanvas
 }
 
