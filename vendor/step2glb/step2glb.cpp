@@ -4,17 +4,9 @@
 #include <BRep_Builder.hxx>
 #include <Bnd_Box.hxx>
 #include <IGESCAFControl_Reader.hxx>
-#include <Interface_Static.hxx>
 #include <Message_ProgressRange.hxx>
 #include <RWGltf_CafWriter.hxx>
 #include <STEPCAFControl_Reader.hxx>
-#include <Standard_Version.hxx>
-#include <StepData_StepModel.hxx>
-#include <StepGeom_Curve.hxx>
-#include <StepGeom_Line.hxx>
-#include <StepGeom_Plane.hxx>
-#include <StepGeom_Surface.hxx>
-#include <StepShape_FaceSurface.hxx>
 #include <TColStd_IndexedDataMapOfStringString.hxx>
 #include <TDF_LabelSequence.hxx>
 #include <TDocStd_Document.hxx>
@@ -24,16 +16,11 @@
 #include <XCAFApp_Application.hxx>
 #include <XCAFDoc_DocumentTool.hxx>
 #include <XCAFDoc_ShapeTool.hxx>
-#if OCC_VERSION_HEX >= 0x070800
-#include <DESTEP_Parameters.hxx>
-#endif
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <fstream>
 #include <string>
 
 static void say(const char* message) {
@@ -48,39 +35,6 @@ static std::string extensionOf(const std::string& path) {
   return ext;
 }
 
-// Meshes exported as STEP (thousands of flat triangles) make OpenCascade's face
-// orientation fix quadratic in the number of faces, so those files skip that one step.
-static bool isFaceted(const Handle(StepData_StepModel)& model) {
-  int faces = 0;
-  for (Standard_Integer i = 1; i <= model->NbEntities(); i++) {
-    const Handle(Standard_Transient)& entity = model->Value(i);
-    if (entity->IsKind(STANDARD_TYPE(StepShape_FaceSurface))) faces++;
-    else if (entity->IsKind(STANDARD_TYPE(StepGeom_Surface)) && !entity->IsKind(STANDARD_TYPE(StepGeom_Plane))) return false;
-    else if (entity->IsKind(STANDARD_TYPE(StepGeom_Curve)) && !entity->IsKind(STANDARD_TYPE(StepGeom_Line))) return false;
-  }
-  return faces >= 2000;
-}
-
-static void skipFaceOrientation(STEPCAFControl_Reader& reader, const std::string& dir) {
-#if OCC_VERSION_HEX >= 0x070800
-  (void)dir;
-  DE_ShapeFixParameters parameters = DESTEP_Parameters::GetDefaultShapeFixParameters();
-  parameters.FixFaceOrientationMode = DE_ShapeFixParameters::FixMode::NotFix;
-  reader.ChangeReader().SetShapeFixParameters(parameters);
-#else
-  // Older versions only take shape fixing settings from a resource file.
-  (void)reader;
-  std::ofstream(dir + "/Faceted") << "Faceted.exec.op : FixShape\n"
-                                     "Faceted.FixShape.Tolerance3d : &Runtime.Tolerance\n"
-                                     "Faceted.FixShape.MaxTolerance3d : &Runtime.MaxTolerance\n"
-                                     "Faceted.FixShape.MinTolerance3d : 1.e-7\n"
-                                     "Faceted.FixShape.FixFaceOrientationMode : 0\n";
-  setenv("CSF_FacetedDefaults", dir.c_str(), 1);
-  Interface_Static::SetCVal("read.step.resource.name", "Faceted");
-  Interface_Static::SetCVal("read.step.sequence", "Faceted");
-#endif
-}
-
 static bool read(const std::string& path, Handle(TDocStd_Document) doc) {
   const std::string ext = extensionOf(path);
   if (ext == "step" || ext == "stp") {
@@ -88,11 +42,7 @@ static bool read(const std::string& path, Handle(TDocStd_Document) doc) {
     reader.SetColorMode(true);
     reader.SetNameMode(true);
     reader.SetLayerMode(false);
-    if (reader.ReadFile(path.c_str()) != IFSelect_RetDone) return false;
-    const size_t slash = path.find_last_of('/');
-    if (isFaceted(reader.ChangeReader().StepModel()))
-      skipFaceOrientation(reader, slash == std::string::npos ? "." : path.substr(0, slash));
-    return reader.Transfer(doc);
+    return reader.ReadFile(path.c_str()) == IFSelect_RetDone && reader.Transfer(doc);
   }
   if (ext == "iges" || ext == "igs") {
     IGESCAFControl_Reader reader;

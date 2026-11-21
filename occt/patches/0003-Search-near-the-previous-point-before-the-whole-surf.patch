@@ -1,0 +1,101 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Liam Newbill <98195512+destroyer796@users.noreply.github.com>
+Date: Sat, 21 Nov 2026 16:05:52 -0500
+Subject: [PATCH 3/3] Search near the previous point before the whole surface
+ when projecting edge points
+
+ShapeAnalysis_Surface::NextValueOfUV falls back to ValueOfUV, an Extrema search
+over the whole surface, whenever Newton from the previous point fails. On a
+B-spline with thousands of knot spans that search takes about 50 ms, and on a
+modelled thread (Fusion's 257-turn threaded rod: two flank surfaces of 8,228
+spans whose helical edges sit on their boundary) Newton failed for about a
+third of the points while computing the edges' 2D curves, so reading the body
+took about ten minutes. B-spline surfaces now first search the two knot spans
+either side of the previous point and only search everywhere if the minimum
+lands on that window's edge. The rod reads and meshes in 23 s; output on other
+test files is unchanged apart from edge vertices placed elsewhere along the
+same surface.
+
+diff --git a/src/ShapeAnalysis/ShapeAnalysis_Surface.cxx b/src/ShapeAnalysis/ShapeAnalysis_Surface.cxx
+index 07c1beaf..904968f7 100644
+--- a/src/ShapeAnalysis/ShapeAnalysis_Surface.cxx
++++ b/src/ShapeAnalysis/ShapeAnalysis_Surface.cxx
+@@ -1090,6 +1090,29 @@ Standard_Integer ShapeAnalysis_Surface::SurfaceNewton(const gp_Pnt2d&     p2dPre
+   return Standard_False;
+ }
+ 
++namespace
++{
++//! Narrows [theFirst, theLast] to the knot spans around theParam, theSpans spans on each side.
++void nearbyKnotSpans(const TColStd_Array1OfReal& theKnots,
++                     const Standard_Real         theParam,
++                     const Standard_Integer      theSpans,
++                     Standard_Real&              theFirst,
++                     Standard_Real&              theLast)
++{
++  Standard_Integer aLow = theKnots.Lower(), aHigh = theKnots.Upper();
++  while (aHigh - aLow > 1)
++  {
++    const Standard_Integer aMid = (aLow + aHigh) / 2;
++    if (theKnots(aMid) <= theParam)
++      aLow = aMid;
++    else
++      aHigh = aMid;
++  }
++  theFirst = Max(theFirst, theKnots(Max(theKnots.Lower(), aLow - theSpans)));
++  theLast  = Min(theLast, theKnots(Min(theKnots.Upper(), aLow + 1 + theSpans)));
++}
++} // namespace
++
+ //=======================================================================
+ // function : NextValueOfUV
+ // purpose  : optimizing projection by Newton algo (S4030)
+@@ -1165,6 +1188,48 @@ gp_Pnt2d ShapeAnalysis_Surface::NextValueOfUV(const gp_Pnt2d&     p2dPrev,
+     default:
+       break;
+   }
++
++  // Before searching the whole surface, search the few knot spans around the previous point:
++  // points along an edge are projected one after another, so the answer is nearly always close
++  // by. On a B-spline with thousands of spans (a long modelled thread) the whole-surface search
++  // took about 50 ms a point, and computing a thread's edge curves took about ten minutes.
++  if (surftype == GeomAbs_BSplineSurface)
++  {
++    Handle(Geom_BSplineSurface) aBSpline = SurfAdapt.BSpline();
++    Standard_Real               uf, ul, vf, vl;
++    Bounds(uf, ul, vf, vl);
++    Standard_Real u0 = uf, u1 = ul, v0 = vf, v1 = vl;
++    if (!aBSpline->IsUPeriodic())
++      nearbyKnotSpans(aBSpline->UKnots(), p2dPrev.X(), 2, u0, u1);
++    if (!aBSpline->IsVPeriodic())
++      nearbyKnotSpans(aBSpline->VKnots(), p2dPrev.Y(), 2, v0, v1);
++    if (u1 > u0 && v1 > v0 && (u1 - u0) * (v1 - v0) < 0.25 * (ul - uf) * (vl - vf))
++    {
++      Extrema_ExtPS anExt;
++      anExt.SetFlag(Extrema_ExtFlag_MIN);
++      anExt.Initialize(SurfAdapt, u0, u1, v0, v1, Precision::PConfusion(), Precision::PConfusion());
++      anExt.Perform(P3D);
++      if (anExt.IsDone() && anExt.NbExt() > 0)
++      {
++        Standard_Integer anIndex = 1;
++        for (Standard_Integer anExtIndex = 2; anExtIndex <= anExt.NbExt(); ++anExtIndex)
++          if (anExt.SquareDistance(anExtIndex) < anExt.SquareDistance(anIndex))
++            anIndex = anExtIndex;
++        Standard_Real S, T;
++        anExt.Point(anIndex).Parameter(S, T);
++        // A minimum on the window's edge (not the surface's) may only be a local one.
++        const Standard_Real    aTolU = 1.e-6 * (u1 - u0), aTolV = 1.e-6 * (v1 - v0);
++        const Standard_Boolean isOnWindowEdge =
++          (u0 > uf && S - u0 < aTolU) || (u1 < ul && u1 - S < aTolU)
++          || (v0 > vf && T - v0 < aTolV) || (v1 < vl && v1 - T < aTolV);
++        if (!isOnWindowEdge)
++        {
++          myGap = Sqrt(anExt.SquareDistance(anIndex));
++          return gp_Pnt2d(S, T);
++        }
++      }
++    }
++  }
+   return ValueOfUV(P3D, preci);
+ }
+ 

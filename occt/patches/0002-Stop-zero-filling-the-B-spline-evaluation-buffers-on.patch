@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Liam Newbill <98195512+destroyer796@users.noreply.github.com>
+Date: Fri, 20 Nov 2026 17:10:43 -0500
+Subject: [PATCH 2/3] Stop zero-filling the B-spline evaluation buffers on
+ every call
+
+OpenCascade 7.9 value-initialises the stack buffers in BSplSLib_DataContainer,
+BSplCLib_DataContainer and BSplCLib's work buffer (about 21 KB for a surface)
+each time a B-spline point or derivative is evaluated. They are always written
+before they are read, and 7.6 to 7.8 left them uninitialised. Natively the
+memset is cheap, but in WebAssembly it took about a third of meshing time:
+a Cherry MX switch model went from 2.0 s on 7.6 to 6.3 s on 7.9.
+This restores the 7.8 declarations.
+
+diff --git a/src/BSplCLib/BSplCLib.cxx b/src/BSplCLib/BSplCLib.cxx
+index e3b05909..a681b7e8 100644
+--- a/src/BSplCLib/BSplCLib.cxx
++++ b/src/BSplCLib/BSplCLib.cxx
+@@ -64,7 +64,7 @@ public:
+ private:
+   // local buffer, to be sufficient for addressing by index [Degree+1][Degree+1]
+   // (see math_Matrix implementation)
+-  Standard_Real myBuffer[27 * 27]{};
++  Standard_Real myBuffer[27 * 27];
+ };
+ 
+ //=================================================================================================
+diff --git a/src/BSplCLib/BSplCLib_2.cxx b/src/BSplCLib/BSplCLib_2.cxx
+index 4cb55cf1..01165fa2 100644
+--- a/src/BSplCLib/BSplCLib_2.cxx
++++ b/src/BSplCLib/BSplCLib_2.cxx
+@@ -46,9 +46,9 @@ struct BSplCLib_DataContainer
+                                  "BSplCLib: bspline degree is greater than maximum supported");
+   }
+ 
+-  Standard_Real poles[2 * (25 + 1)]{};
+-  Standard_Real knots[2 * 25]{};
+-  Standard_Real ders[4]{};
++  Standard_Real poles[2 * (25 + 1)];
++  Standard_Real knots[2 * 25];
++  Standard_Real ders[4];
+ };
+ 
+ // methods for 1 dimensional BSplines
+diff --git a/src/BSplSLib/BSplSLib.cxx b/src/BSplSLib/BSplSLib.cxx
+index be821ff6..4cb78c34 100644
+--- a/src/BSplSLib/BSplSLib.cxx
++++ b/src/BSplSLib/BSplSLib.cxx
+@@ -54,10 +54,10 @@ struct BSplSLib_DataContainer
+                                  "BSplSLib: bspline degree is greater than maximum supported");
+   }
+ 
+-  Standard_Real poles[4 * (25 + 1) * (25 + 1)]{};
+-  Standard_Real knots1[2 * 25]{};
+-  Standard_Real knots2[2 * 25]{};
+-  Standard_Real ders[48]{};
++  Standard_Real poles[4 * (25 + 1) * (25 + 1)];
++  Standard_Real knots1[2 * 25];
++  Standard_Real knots2[2 * 25];
++  Standard_Real ders[48];
+ };
+ 
+ //**************************************************************************
